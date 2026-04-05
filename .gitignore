@@ -1,0 +1,12 @@
+# Compiled objects and binaries
+*.o
+dwm/dwm
+st/st
+dmenu/dmenu
+dmenu/stest
+slstatus/slstatus
+
+# Editor backups
+*.swp
+*.orig
+*~

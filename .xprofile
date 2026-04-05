@@ -1,0 +1,2 @@
+export CM_LAUNCHER=dmenu
+export CM_LAUNCHER_OPTS='-i -l 10 -fn "Iosevka Nerd Font:size=14" -nb "#1a1b26" -nf "#a9b1d6" -sb "#7aa2f7" -sf "#1a1b26"'
