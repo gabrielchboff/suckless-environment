@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 
 	qsort(entries, count, sizeof(struct entry), cmp_mtime_desc);
 
-	ctx = dmenu_open("clipboard", argv + 1);
+	ctx = dmenu_open("clipboard", 10, argv + 1);
 	if (!ctx)
 		die("dmenu_open:");
 

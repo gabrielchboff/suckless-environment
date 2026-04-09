@@ -10,13 +10,13 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DEPS="base-devel libxft libxinerama freetype2 fontconfig xorg-server xorg-xinit"
 
 # Runtime dependencies
-RUNTIME_DEPS="ttf-iosevka-nerd feh fcitx5 polkit-gnome libpulse xorg-xbacklight maim xclip xsel xdotool thunar cpupower slock dunst"
+RUNTIME_DEPS="ttf-iosevka-nerd feh fcitx5 polkit-gnome libpulse xorg-xbacklight maim xclip xsel xdotool thunar power-profiles-daemon dunst"
 
 echo "==> Installing pacman dependencies"
 sudo pacman -S --needed $BUILD_DEPS $RUNTIME_DEPS
 
 # AUR packages (requires an AUR helper like yay or paru)
-AUR_DEPS="brave-bin"
+AUR_DEPS="brave-bin betterlockscreen"
 
 if command -v yay >/dev/null 2>&1; then
     echo "==> Installing AUR packages with yay"
@@ -52,12 +52,9 @@ make -C "$REPO_DIR/utils" install
 
 # --- Dotfiles ---
 
-echo "==> Installing scripts"
-mkdir -p "$HOME/.local/bin"
-for s in dmenu-clipd dmenu-clip dmenu-cpupower dmenu-session; do
-	cp "$REPO_DIR/scripts/$s" "$HOME/.local/bin/$s"
-	chmod +x "$HOME/.local/bin/$s"
-done
+# Note: dmenu-clip, dmenu-cpupower, dmenu-session are now C utilities
+# installed by 'make -C utils install' above. Shell scripts in scripts/
+# are kept as reference only.
 
 echo "==> Installing dwm-start"
 cp "$REPO_DIR/dwm-start" "$HOME/.local/bin/dwm-start"

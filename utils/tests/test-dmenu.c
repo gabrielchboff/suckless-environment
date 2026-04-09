@@ -55,7 +55,7 @@ static void
 test_symbol_resolution(void)
 {
 	/* Link-time check: all 4 function symbols resolve */
-	DmenuCtx *(*fn_open)(const char *, char *const []);
+	DmenuCtx *(*fn_open)(const char *, int, char *const []);
 	void (*fn_write)(DmenuCtx *, const char *);
 	char *(*fn_read)(DmenuCtx *);
 	void (*fn_close)(DmenuCtx *);
@@ -105,7 +105,7 @@ test_pipe_integration(void)
 	}
 
 	TEST("dmenu_open returns non-NULL");
-	ctx = dmenu_open("test", NULL);
+	ctx = dmenu_open("test", 0, NULL);
 	if (!ctx) {
 		FAIL("dmenu_open returned NULL");
 		return;

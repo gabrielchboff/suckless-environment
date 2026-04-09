@@ -11,12 +11,14 @@
 #define DMENU_BUFSIZ 1024
 
 DmenuCtx *
-dmenu_open(const char *prompt, char *const extra_argv[])
+dmenu_open(const char *prompt, int lines, char *const extra_argv[])
 {
 	int to_dmenu[2];
 	int from_dmenu[2];
 	int extra_count;
+	int base;
 	char **argv;
+	char linesbuf[12];
 	int i;
 	pid_t pid;
 	DmenuCtx *ctx;
@@ -27,16 +29,22 @@ dmenu_open(const char *prompt, char *const extra_argv[])
 		while (extra_argv[extra_count])
 			extra_count++;
 
-	/* Build argv: "dmenu", "-p", prompt, [extras...], NULL */
-	argv = malloc((3 + extra_count + 1) * sizeof(char *));
+	/* Build argv: "dmenu", "-p", prompt, ["-l", N], [extras...], NULL */
+	base = 3 + (lines > 0 ? 2 : 0);
+	argv = malloc((base + extra_count + 1) * sizeof(char *));
 	if (!argv)
 		die("malloc:");
 	argv[0] = "dmenu";
 	argv[1] = "-p";
 	argv[2] = (char *)prompt;
+	if (lines > 0) {
+		snprintf(linesbuf, sizeof(linesbuf), "%d", lines);
+		argv[3] = "-l";
+		argv[4] = linesbuf;
+	}
 	for (i = 0; i < extra_count; i++)
-		argv[3 + i] = extra_argv[i];
-	argv[3 + extra_count] = NULL;
+		argv[base + i] = extra_argv[i];
+	argv[base + extra_count] = NULL;
 
 	/* Create two pipes for bidirectional communication */
 	if (pipe(to_dmenu) < 0)

@@ -14,7 +14,7 @@ confirm(const char *prompt, char *const extra_argv[])
 	char *sel;
 	int yes;
 
-	ctx = dmenu_open(prompt, extra_argv);
+	ctx = dmenu_open(prompt, 2, extra_argv);
 	dmenu_write(ctx, "no");
 	dmenu_write(ctx, "yes");
 	sel = dmenu_read(ctx);
@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 	argv0 = argv[0];
 	setup_sigchld();
 
-	ctx = dmenu_open("session", argv + 1);
+	ctx = dmenu_open("session", 4, argv + 1);
 	dmenu_write(ctx, "logout");
 	dmenu_write(ctx, "lock");
 	dmenu_write(ctx, "reboot");

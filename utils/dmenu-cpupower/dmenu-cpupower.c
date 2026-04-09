@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 
 	snprintf(prompt, sizeof(prompt), "cpu: %s", current);
 
-	ctx = dmenu_open(prompt, argv + 1);
+	ctx = dmenu_open(prompt, 3, argv + 1);
 	dmenu_write(ctx, "performance");
 	dmenu_write(ctx, "balanced");
 	dmenu_write(ctx, "power-saver");

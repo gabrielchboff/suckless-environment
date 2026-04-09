@@ -11,9 +11,10 @@ typedef struct {
 	pid_t pid;      /* dmenu child PID */
 } DmenuCtx;
 
-/* Open dmenu with given prompt. Extra args forwarded to dmenu.
+/* Open dmenu with given prompt. lines > 0 enables vertical list (-l N).
+ * Extra args forwarded to dmenu.
  * Returns handle for write/read operations, or NULL on failure. */
-DmenuCtx *dmenu_open(const char *prompt, char *const extra_argv[]);
+DmenuCtx *dmenu_open(const char *prompt, int lines, char *const extra_argv[]);
 
 /* Write a single menu item (appends newline). */
 void dmenu_write(DmenuCtx *ctx, const char *item);
