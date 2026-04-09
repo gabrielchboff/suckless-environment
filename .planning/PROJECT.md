@@ -31,8 +31,8 @@ Every user-facing utility is a fast, safe, native C program that works reliably 
 - [ ] Convert dmenu-clipd to C with X11 clipboard events (replace polling)
 - [ ] Convert battery-notify to C
 - [ ] Convert screenshot-notify to C
-- [ ] Per-tool directory structure under utils/
-- [ ] Updated install.sh: compile C utilities, handle new dependencies
+- [x] Per-tool directory structure under utils/ — Phase 1
+- [x] Updated install.sh: compile C utilities, handle new dependencies — Phase 1
 
 ### Out of Scope
 
@@ -87,4 +87,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after initialization*
+*Last updated: 2026-04-09 after Phase 1 completion*
