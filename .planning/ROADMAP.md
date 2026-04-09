@@ -81,8 +81,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Implement dmenu-clipd.c daemon (XFixes events, FNV-1a dedup, flock, select() event loop, SIGTERM shutdown, LRU pruning)
-- [ ] 04-02-PLAN.md — Makefile integration with X11 LDFLAGS and end-to-end clipboard workflow verification
+- [x] 04-01-PLAN.md — Implement dmenu-clipd.c daemon (XFixes events, FNV-1a dedup, flock, select() event loop, SIGTERM shutdown, LRU pruning)
+- [x] 04-02-PLAN.md — Makefile integration with X11 LDFLAGS and end-to-end clipboard workflow verification
 
 ## Progress
 
