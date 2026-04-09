@@ -9,7 +9,8 @@ DMENU_OBJ  = common/dmenu.o
 
 # Utility binaries - populated as phases add utilities
 BINS = battery-notify/battery-notify screenshot-notify/screenshot-notify \
-       dmenu-session/dmenu-session dmenu-cpupower/dmenu-cpupower
+       dmenu-session/dmenu-session dmenu-cpupower/dmenu-cpupower \
+       dmenu-clip/dmenu-clip
 
 all: $(COMMON_OBJ) $(DMENU_OBJ) $(BINS)
 
@@ -48,6 +49,13 @@ dmenu-cpupower/dmenu-cpupower: dmenu-cpupower/dmenu-cpupower.o $(COMMON_OBJ) $(D
 dmenu-cpupower/dmenu-cpupower.o: dmenu-cpupower/dmenu-cpupower.c common/util.h common/dmenu.h
 	$(CC) -o $@ -c $(CFLAGS) $<
 
+# dmenu-clip
+dmenu-clip/dmenu-clip: dmenu-clip/dmenu-clip.o $(COMMON_OBJ) $(DMENU_OBJ)
+	$(CC) -o $@ $(LDFLAGS) $^
+
+dmenu-clip/dmenu-clip.o: dmenu-clip/dmenu-clip.c dmenu-clip/config.h common/util.h common/dmenu.h
+	$(CC) -o $@ -c $(CFLAGS) $<
+
 clean:
 	rm -f $(COMMON_OBJ) $(DMENU_OBJ)
 	rm -f $(BINS)
@@ -55,6 +63,7 @@ clean:
 	rm -f screenshot-notify/*.o
 	rm -f dmenu-session/*.o
 	rm -f dmenu-cpupower/*.o
+	rm -f dmenu-clip/*.o
 	rm -f test-util test-dmenu tests/test-util.o tests/test-dmenu.o
 
 install: all
