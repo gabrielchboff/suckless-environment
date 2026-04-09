@@ -42,6 +42,14 @@ cd "$REPO_DIR/dmenu" && sudo make clean install
 echo "==> Building and installing slstatus"
 cd "$REPO_DIR/slstatus" && sudo make clean install
 
+# --- Build and install C utilities ---
+
+echo "==> Building C utilities"
+make -C "$REPO_DIR/utils" clean all
+
+echo "==> Installing C utilities"
+make -C "$REPO_DIR/utils" install
+
 # --- Dotfiles ---
 
 echo "==> Installing scripts"
