@@ -47,8 +47,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Battery-notify: sysfs reading, state file logic, critical dunst notification
-- [ ] 02-02-PLAN.md — Screenshot-notify: maim|xclip pipeline, cancel detection, success notification
+- [x] 02-01-PLAN.md — Battery-notify: sysfs reading, state file logic, critical dunst notification
+- [x] 02-02-PLAN.md — Screenshot-notify: maim|xclip pipeline, cancel detection, success notification
 
 ### Phase 3: Interactive Utilities
 **Goal**: Users can manage sessions, power profiles, and clipboard history through dmenu-driven C utilities that replace the existing shell scripts
