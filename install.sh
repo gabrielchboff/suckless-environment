@@ -1,70 +1,159 @@
 #!/bin/sh
+#
+# suckless-environment installer (Arch + Artix only, POSIX sh)
+# See .planning/phases/01-install-hardening-platform-detection/ for design notes.
 
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# --- Dependencies ---
-
-# Build dependencies
-BUILD_DEPS="base-devel libxft libxinerama freetype2 fontconfig xorg-server xorg-xinit"
-
-# Runtime dependencies
-RUNTIME_DEPS="ttf-iosevka-nerd feh fcitx5 lxpolkit libpulse xorg-xbacklight maim xclip xsel xdotool thunar power-profiles-daemon-openrc dunst"
-
-echo "==> Installing pacman dependencies"
-sudo pacman -S --needed $BUILD_DEPS $RUNTIME_DEPS
-
-# AUR packages (requires an AUR helper like yay or paru)
+# ---------------------------------------------------------------- config
+BUILD_DEPS="base-devel git libxft libxinerama freetype2 fontconfig xorg-server xorg-xinit"
+RUNTIME_DEPS="ttf-iosevka-nerd feh fcitx5 lxpolkit libpulse brightnessctl maim xclip xsel xdotool thunar pamixer dunst"
 AUR_DEPS="brave-bin betterlockscreen"
+# PPD_PKG, INIT, AUR_HELPER set at runtime by detect_distro / ensure_aur_helper
+SUDO_KEEPALIVE_PID=""
 
-if command -v yay >/dev/null 2>&1; then
-    echo "==> Installing AUR packages with yay"
-    yay -S --needed $AUR_DEPS
-elif command -v paru >/dev/null 2>&1; then
-    echo "==> Installing AUR packages with paru"
-    paru -S --needed $AUR_DEPS
+# ---------------------------------------------------------------- color + helpers (D-14)
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    C_RED='\033[31m'; C_GREEN='\033[32m'; C_YELLOW='\033[33m'
+    C_BLUE='\033[34m'; C_CYAN='\033[36m'; C_RESET='\033[0m'
 else
-    echo "==> No AUR helper found. Install manually: $AUR_DEPS"
+    C_RED=''; C_GREEN=''; C_YELLOW=''; C_BLUE=''; C_CYAN=''; C_RESET=''
 fi
 
-# --- Build and install suckless tools ---
+info() { printf '==> %s%s%s\n' "$C_CYAN"   "$*" "$C_RESET"; }
+skip() { printf '==> %s[skip]%s %s\n'       "$C_BLUE"  "$C_RESET" "$*"; }
+warn() { printf '==> %sWARN:%s %s\n'        "$C_YELLOW" "$C_RESET" "$*" >&2; }
+die()  { printf '==> %sFAIL:%s %s\n'        "$C_RED"    "$C_RESET" "$*" >&2; exit 1; }
+hr()   { printf -- '-----------------------------------------------------------------\n'; }
 
-echo "==> Building and installing dwm"
-cd "$REPO_DIR/dwm" && sudo make clean install
+# ---------------------------------------------------------------- guards (D-04, D-01, D-02, D-03)
+require_non_root() {
+    [ "$(id -u)" -eq 0 ] && \
+        die "do not run as root — run as your normal user; sudo will be invoked when needed"
+    return 0
+}
 
-echo "==> Building and installing st"
-cd "$REPO_DIR/st" && sudo make clean install
+detect_distro() {
+    [ -r /etc/os-release ] || die "/etc/os-release not found"
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    case "$ID" in
+        arch)  PPD_PKG="power-profiles-daemon" ;;
+        artix) PPD_PKG="power-profiles-daemon-openrc" ;;
+        *)     die "unsupported distro: $ID (this installer supports arch and artix only)" ;;
+    esac
+    if [ -d /run/openrc ]; then
+        INIT=openrc
+    elif [ -d /run/systemd/system ]; then
+        INIT=systemd
+    else
+        die "no live init detected (neither /run/openrc nor /run/systemd/system) — running in a chroot?"
+    fi
+    command -v pacman >/dev/null 2>&1 || die "pacman not found on $ID — broken system"
+    info "distro: $ID / init: $INIT / ppd: $PPD_PKG"
+}
 
-echo "==> Building and installing dmenu"
-cd "$REPO_DIR/dmenu" && sudo make clean install
+# ---------------------------------------------------------------- sudo keepalive (D-05)
+sudo_keepalive_start() {
+    sudo -v || die "sudo credentials required"
+    (
+        while true; do
+            sudo -n true 2>/dev/null || exit
+            sleep 60
+        done
+    ) &
+    SUDO_KEEPALIVE_PID=$!
+}
 
-echo "==> Building and installing slstatus"
-cd "$REPO_DIR/slstatus" && sudo make clean install
+sudo_keepalive_stop() {
+    if [ -n "$SUDO_KEEPALIVE_PID" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || :
+    fi
+    SUDO_KEEPALIVE_PID=""
+}
 
-# --- Build and install C utilities ---
+ensure_aur_helper() {
+    if command -v paru >/dev/null 2>&1; then
+        AUR_HELPER=paru
+        skip "AUR helper: paru already installed"
+        return 0
+    fi
+    if command -v yay >/dev/null 2>&1; then
+        AUR_HELPER=yay
+        skip "AUR helper: yay already installed"
+        return 0
+    fi
 
-echo "==> Building C utilities"
-make -C "$REPO_DIR/utils" clean all
+    printf '%s\n' "No AUR helper found. Required for brave-bin + betterlockscreen."
+    printf '%s\n' "  1) install paru (recommended)"
+    printf '%s\n' "  2) install yay"
+    printf '%s\n' "  3) abort"
+    printf 'choose [1/2/3]: '
 
-echo "==> Installing C utilities"
-make -C "$REPO_DIR/utils" install
+    if [ -t 0 ]; then
+        read -r choice
+    else
+        read -r choice < /dev/tty
+    fi
 
-# --- Dotfiles ---
+    case "$choice" in
+        1) bootstrap_aur_helper paru https://aur.archlinux.org/paru.git ;;
+        2) bootstrap_aur_helper yay  https://aur.archlinux.org/yay.git ;;
+        3) die "aborted by user" ;;
+        *) die "invalid choice: $choice" ;;
+    esac
+}
 
-# Note: dmenu-clip, dmenu-cpupower, dmenu-session are now C utilities
-# installed by 'make -C utils install' above. Shell scripts in scripts/
-# are kept as reference only.
+bootstrap_aur_helper() {
+    _name=$1
+    _url=$2
 
-echo "==> Installing dwm-start"
-cp "$REPO_DIR/dwm-start" "$HOME/.local/bin/dwm-start"
-chmod +x "$HOME/.local/bin/dwm-start"
+    info "bootstrapping $_name: installing base-devel + git prerequisites"
+    # shellcheck disable=SC2086
+    sudo pacman -S --needed --noconfirm base-devel git \
+        || die "failed to install base-devel git (needed to build $_name)"
 
-echo "==> Installing dunst config"
-mkdir -p "$HOME/.config/dunst"
-cp "$REPO_DIR/dunst/dunstrc" "$HOME/.config/dunst/dunstrc"
+    command -v git     >/dev/null 2>&1 || die "git not installed after pacman step"
+    command -v makepkg >/dev/null 2>&1 || die "makepkg not installed after pacman step"
 
-echo "==> Installing .xprofile"
-cp "$REPO_DIR/.xprofile" "$HOME/.xprofile"
+    info "bootstrapping $_name from AUR: $_url"
+    _tmp=$(mktemp -d) || die "mktemp failed"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$_tmp'; sudo_keepalive_stop" EXIT
 
-echo "==> Done!"
+    ( cd "$_tmp" && git clone --depth 1 "$_url" "$_name" ) \
+        || die "git clone $_url failed"
+    ( cd "$_tmp/$_name" && makepkg -si --noconfirm ) \
+        || die "makepkg for $_name failed"
+
+    trap 'sudo_keepalive_stop' EXIT
+    rm -rf "$_tmp"
+
+    AUR_HELPER=$_name
+    info "$_name installed"
+}
+
+# ---------------------------------------------------------------- AUR helper bootstrap (D-08) — added in Task 2
+
+# ---------------------------------------------------------------- install steps — added in Plans 02/03
+
+# ---------------------------------------------------------------- main
+main() {
+    require_non_root
+    detect_distro
+    sudo_keepalive_start
+    trap 'sudo_keepalive_stop' EXIT
+    trap 'sudo_keepalive_stop; exit 130' INT
+    trap 'sudo_keepalive_stop; exit 143' TERM
+
+    ensure_aur_helper
+
+    # install_pkgs / install_udev_rule / enable_service / ensure_groups — Plan 02
+    # install_binaries / install_dotfiles / verify_install — Plan 03
+
+    info "skeleton OK (plans 02/03 fill in the rest)"
+}
+
+main "$@"
