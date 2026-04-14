@@ -123,22 +123,6 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 | Fail loudly in `install.sh` on unsupported distros rather than best-effort | Silent mis-installs are worse than a clear error; matches suckless "refuse to guess" philosophy | — Pending |
 | No test framework — install.sh is the integration check | Matches suckless practice (TESTING.md); adding Cmocka/Check for this scope is premature | — Pending |
 
-## Evolution
-
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd-transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd-complete-milestone`):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
-
 ---
-*Last updated: 2026-04-14 after initialization*
+
+*Last updated: 2026-04-14 after v1.0 milestone*

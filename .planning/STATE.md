@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 03-shell-c-migration-hygiene phase
-last_updated: "2026-04-14T16:55:27.576Z"
+milestone_name: v1.0 MVP
+status: complete
+stopped_at: Completed v1.0 milestone (all 4 phases, 10 plans)
+last_updated: "2026-04-14T18:00:00.000Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -18,83 +18,63 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-14)
+See: .planning/PROJECT.md (updated 2026-04-14 after v1.0 milestone)
 
 **Core value:** One install.sh works on both Arch and Artix, and every user-facing utility is a fast, safe C program that works out of the box.
-**Current focus:** Phase 02 — battery-brightness-utilities
+**Current focus:** v1.0 milestone complete — awaiting next milestone definition
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Executing Phase 02
+Milestone: v1.0 complete (Phases 1-4, 10/10 plans)
+Status: Complete
 Last activity: 2026-04-14
 
-Progress: [░░░░░░░░░░] 0%
+## Milestone v1.0 Summary
 
-## Performance Metrics
+**Shipped:** 2026-04-14
 
-**Velocity:**
+- Phase 1: Install hardening + platform detection (4/4 plans) ✅
+- Phase 2: Battery + Brightness utilities (2/2 plans) ✅
+- Phase 3: Shell→C migration hygiene (3/3 plans) ✅
+- Phase 4: Release readiness (1/1 plan) ✅
 
-- Total plans completed: 2
-- Average duration: n/a
-- Total execution time: 0.0 hours
+**Key accomplishments:**
+- Dual-distro installer (Arch + Artix)
+- Battery notifications with tiered urgency
+- Brightness OSD with flock serialization
+- Shell→C migration (scripts/ deprecated)
+- Public-ready README with screenshots
 
-**By Phase:**
+**Git stats:** 20 commits, 80 files changed, +2872/-9810 LOC
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Install hardening | 0 | - | - |
-| 2. Battery + Brightness | 0 | - | - |
-| 3. Migration hygiene | 0 | - | - |
-| 4. Release readiness | 0 | - | - |
-| 02 | 2 | - | - |
+**Archived:**
+- .planning/milestones/v1.0-ROADMAP.md
+- .planning/milestones/v1.0-REQUIREMENTS.md
 
-**Recent Trend:**
+## Next Steps
 
-- Last 5 plans: none yet
-- Trend: n/a (no execution yet)
-
-*Updated after each plan completion*
-| Phase 01 P4 | 20 | 10 tasks | 3 files |
+Run `/gsd-new-milestone` to define the v2.0 scope.
 
 ## Accumulated Context
 
-### Decisions
+### Decisions (from v1.0)
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- Phase 1: Single `install.sh` with `/etc/os-release` + live-init probe (not separate per-distro scripts)
-- Phase 1: Ship own `90-backlight.rules` (Arch's brightnessctl pkg has none; silent on Artix without elogind)
-- Phase 2: Battery + brightness ship together (shared utils/common, dunst replace-id namespace 9001/9002/9101)
-- Phase 2: `brightnessctl` over `xbacklight` or raw sysfs
-- Phase 3: Keep `scripts/` as deprecated fallback this milestone, delete next
-- Phase 4: README overhaul over PKGBUILD/CI/CHANGELOG for "public-ready"
-- [Phase 01]: Root guard with message directing users to run normally (D-04)
-- [Phase 01]: Strict distro whitelist (arch/artix only, no ID_LIKE derivatives) (D-01)
-- [Phase 01]: Chroot detection via /run/openrc and /run/systemd/system probes (D-02)
-- [Phase 01]: Sudo keepalive with EXIT/INT/TERM trap cleanup (D-05)
-- [Phase 01]: AUR helper bootstrap uses mktemp -d for isolation (D-08)
-- [Phase 01]: PPD variant dispatch: power-profiles-daemon (Arch) vs -openrc (Artix) (D-10)
-- [Phase 01]: Udev rule uses RUN+= chgrp/chmod not GROUP=/MODE= (D-13)
-- [Phase 01]: 15-check verification summary with WARN_COUNT, never exits non-zero (D-16, D-17)
+All v1.0 decisions are documented in PROJECT.md Key Decisions table. Major decisions:
+- Single install.sh with /etc/os-release detection
+- Battery + brightness as separate utilities
+- scripts/ deprecated (delete in v2.0)
+- README overhaul over PKGBUILD
 
 ### Pending Todos
 
-[From .planning/todos/pending/ — ideas captured during sessions]
-
-None yet.
+None.
 
 ### Blockers/Concerns
 
-[Issues that affect future work]
-
-- Artix-without-elogind VM test — must be included in REL-03 scope (research flagged this as the only MEDIUM-confidence area)
-- Laptop hardware matrix for `brightnessctl` device selection (intel_backlight vs amdgpu_bl0 vs tpacpi vs MacBook smc) — Phase 2 needs autodetect + `BRIGHTNESS_DEVICE` override
+None — v1.0 complete.
 
 ## Session Continuity
 
-Last session: 2026-04-14T16:55:27.573Z
-Stopped at: Completed 03-shell-c-migration-hygiene phase
-Resume file: None
+Last session: 2026-04-14T18:00:00.000Z
+Stopped at: v1.0 milestone complete
+Next: /gsd-new-milestone
