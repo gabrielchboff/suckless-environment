@@ -15,6 +15,12 @@ fcitx5 -d
 dmenu-clipd &
 dunst &
 
+# Battery monitor (30 second tick)
+while true; do
+    battery-notify
+    sleep 30
+done &
+
 # Start status bar
 while true; do
     slstatus
