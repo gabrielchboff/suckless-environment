@@ -14,7 +14,7 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - **Language**: C99 for utilities, POSIX sh for install scripts — no bash-isms, no Python, no frameworks
 - **Display server**: X11 — direct Xlib/XFixes usage where needed
 - **Style**: Suckless — minimal dependencies, compile-time `config.h` customization, no runtime config files
-- **Dependencies (runtime)**: dwm/st/dmenu/slstatus + betterlockscreen (AUR), power-profiles-daemon, lxpolkit, maim, xclip, dunst, brightnessctl (new)
+- **Dependencies (runtime)**: dwm/st/dmenu/slstatus + betterlockscreen (AUR), power-profiles-daemon, lxpolkit, flameshot, xclip, dunst, brightnessctl (new)
 - **Dependencies (build)**: `base-devel`, libxft, libxinerama, freetype2, fontconfig, xorg headers
 - **Install target**: binaries to `/usr/local/bin/`, man pages to `/usr/local/share/man/`
 - **No privilege escalation in utilities**: `dmenu-cpupower` uses `powerprofilesctl` (unprivileged), brightness uses `brightnessctl` with its setuid helper — no `pkexec`, no `sudo` in user-facing tools
@@ -55,7 +55,8 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - `libXinerama` — multi-monitor support for dwm and dmenu (`dwm/config.mk:14`, `dmenu/config.mk:12`).
 - `libXfixes` — clipboard change notifications; linked only into `dmenu-clipd` (`utils/Makefile:11,64`).
 - `libutil`, `libm`, `librt` — required by st for PTY/timers (`st/config.mk:19`).
-- `maim` + `xclip` — screenshot capture and clipboard I/O. Invoked by `utils/screenshot-notify/screenshot-notify.c:27,39-41` and `utils/dmenu-clip/dmenu-clip.c:75`.
+- `flameshot` — screenshot capture (region/full/annotate, clipboard copy + save). Bound to `XK_Print` in `dwm/config.def.h:101` via `flameshot gui`.
+- `xclip` — clipboard I/O. Invoked by `utils/dmenu-clip/dmenu-clip.c:75`.
 - `xorg-xbacklight` — brightness keys via `xbacklight -inc/-dec 5` (`dwm/config.def.h:7-8`).
 - `libpulse` / `pactl` — volume keys via `pactl set-sink-volume` (`dwm/config.def.h:9-11`).
 - `pamixer` — volume percent for the status bar (`slstatus/config.def.h:76`).
@@ -63,7 +64,7 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - `feh` — wallpaper in `dwm-start:24`.
 - `thunar` — file manager, spawned via keybind `MODKEY+e` (`dwm/config.def.h:102`).
 - `ttf-iosevka-nerd` — UI font used by dwm, dmenu, slstatus, dunst (`dwm/config.def.h:24-25`, `dunst/dunstrc:23`).
-- `notify-send` (libnotify) — used by `battery-notify` and `screenshot-notify` to emit dunst notifications (`utils/battery-notify/battery-notify.c:51-52`, `utils/screenshot-notify/screenshot-notify.c:66-68`).
+- `notify-send` (libnotify) — used by `battery-notify` and `brightness-notify` to emit dunst notifications (`utils/battery-notify/battery-notify.c:51-52`).
 - `brave-bin` (AUR) — launched via `MODKEY+Shift+b` (`dwm/config.def.h:103`).
 ## Configuration
 - Per-tool `config.h` (generated from `config.def.h`) is the only user-editable source. `dwm/config.def.h`, `st/config.def.h`, `dmenu/config.def.h`, `slstatus/config.def.h`, `utils/battery-notify/config.def.h`, `utils/dmenu-clip/config.def.h`, `utils/dmenu-clipd/config.def.h`.
@@ -103,7 +104,7 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - Action entry points in `dmenu-session` follow `action_<verb>`: `action_lock`, `action_logout`, `action_reboot`, `action_shutdown` (`utils/dmenu-session/dmenu-session.c:28,54,74,86`).
 - Unused parameters in slstatus are literally named `unused` (not `(void)unused` casts): `const char *cpu_freq(const char *unused)` (`slstatus/components/cpu.c:13,25,55,75,113,129`).
 - snake_case for local and file-static state: `cache_dir`, `lock_fd`, `done`, `dpy`, `win`, `xfixes_event_base` (`utils/dmenu-clipd/dmenu-clipd.c:30-39`).
-- Short single-letter names are acceptable for loop counters, math, and pipe fds: `i`, `n`, `fd[2]`, `sum`, `a`, `b` (`slstatus/components/cpu.c:27-48`, `utils/screenshot-notify/screenshot-notify.c:12`).
+- Short single-letter names are acceptable for loop counters, math, and pipe fds: `i`, `n`, `fd[2]`, `sum`, `a`, `b` (`slstatus/components/cpu.c:27-48`).
 - Prefix `last_` or duplicate arrays `a`/`b` for previous-tick state in slstatus: `slstatus/components/cpu.c:27` (`static long double a[7]; long double b[7];`).
 - `argv0` is a single file-scope `char *` exposed via `extern` in the shared util header for prefixing error output (`utils/common/util.h:9`, `utils/common/util.c:13`). Every `main()` sets it first: `argv0 = argv[0];` (`utils/battery-notify/battery-notify.c:41`, `utils/dmenu-session/dmenu-session.c:105`, `utils/dmenu-clipd/dmenu-clipd.c:372`).
 - Structs declared with `struct` keyword inline, typedefs used sparingly.
@@ -141,7 +142,7 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 | Exit code of `die` | 1 | 1 | 1 |
 | Has `ecalloc` helper | no | no | yes (`:30-37`) |
 | Has `warn` | yes | yes | no |
-- Trailing-colon convention: end `fmt` with `:` when you want `strerror(errno)` appended. Example: `die("fork:");` produces `"argv0: fork: Interrupted system call"` with utils/common, `"fork: ..."` with slstatus/dwm. See `utils/common/util.c:31-38`, `utils/common/dmenu.c:51,55`, `utils/screenshot-notify/screenshot-notify.c:17`.
+- Trailing-colon convention: end `fmt` with `:` when you want `strerror(errno)` appended. Example: `die("fork:");` produces `"argv0: fork: Interrupted system call"` with utils/common, `"fork: ..."` with slstatus/dwm. See `utils/common/util.c:31-38`, `utils/common/dmenu.c:51,55`.
 - Use `die()` for fatal errors that justify immediate exit. Use `warn()` for recoverable issues. `dwm/util.c` exposes only `die()` — recoverable errors are handled inline with `fputs(..., stderr)` (`dwm/dwm.c:2670`).
 - Value-returning helpers return `NULL` or `-1` on failure, never exit. Example: `pscanf` returns `-1` (`utils/common/util.c:53-70`, `slstatus/util.c:124-141`), component functions return `NULL` (`slstatus/components/cpu.c:19,35,38,44`).
 - Every `malloc`/`fopen`/`fork`/`pipe` return value is checked immediately after the call — no delayed checks. Examples: `utils/common/dmenu.c:35-56,78-94`, `utils/common/util.c:60-63,78-84`.
@@ -212,7 +213,7 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - dwm ships `MAX` and `MIN` as inline utilities in `dwm/util.h` (upstream suckless convention).
 - No feature flags. Conditional compilation is purely `__linux__ / __OpenBSD__ / __FreeBSD__ / XINERAMA`.
 ## Concurrency and Process Hygiene
-- `SIGCHLD` is the default way to reap spawned children. Every utility that spawns calls `setup_sigchld()` at the top of `main()` (`utils/battery-notify/battery-notify.c:42`, `utils/screenshot-notify/screenshot-notify.c:63`, `utils/dmenu-session/dmenu-session.c:106`, `utils/dmenu-cpupower/dmenu-cpupower.c:65`, `utils/dmenu-clip/dmenu-clip.c:117`).
+- `SIGCHLD` is the default way to reap spawned children. Every utility that spawns calls `setup_sigchld()` at the top of `main()` (`utils/battery-notify/battery-notify.c:42`, `utils/dmenu-session/dmenu-session.c:106`, `utils/dmenu-cpupower/dmenu-cpupower.c:65`, `utils/dmenu-clip/dmenu-clip.c:117`).
 - Exception: `dmenu-clipd` does **not** use `setup_sigchld` because it reaps via explicit `waitpid` when the child is a known single process.
 - `SIGTERM`/`SIGINT` are handled by setting a `volatile sig_atomic_t done = 1;` flag, checked in the main loop (`slstatus/slstatus.c:21,26-31`, `utils/dmenu-clipd/dmenu-clipd.c:38,46-51`).
 - `dmenu-clipd` explicitly sets `sa.sa_flags = 0` (no `SA_RESTART`) so syscalls unblock on signal (`utils/dmenu-clipd/dmenu-clipd.c:388`).
@@ -259,11 +260,11 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - Location: External binary; config at `dunst/dunstrc`.
 - Contains: urgency-based styling (low/normal/critical), placement, timeout rules.
 - Depends on: Xlib, libnotify D-Bus interface.
-- Used by: `utils/battery-notify`, `utils/screenshot-notify`, and any application using `notify-send`.
-- Purpose: Session/power menu, CPU profile picker, clipboard daemon + browser, battery alerts, screenshot capture+notify.
-- Location: `utils/{battery-notify,screenshot-notify,dmenu-session,dmenu-cpupower,dmenu-clip,dmenu-clipd}/*.c`.
+- Used by: `utils/battery-notify`, `utils/brightness-notify`, and any application using `notify-send`. Screenshots go through `flameshot` directly (not a utils/ binary).
+- Purpose: Session/power menu, CPU profile picker, clipboard daemon + browser, battery alerts, brightness OSD.
+- Location: `utils/{battery-notify,brightness-notify,dmenu-session,dmenu-cpupower,dmenu-clip,dmenu-clipd}/*.c`.
 - Shared code: `utils/common/util.{c,h}` (die/warn, pscanf, exec helpers, SIGCHLD setup) and `utils/common/dmenu.{c,h}` (dmenu IPC wrapper).
-- Depends on: `dmenu` binary (launched as a child), `xclip`, `maim`, `notify-send`, `loginctl`, `betterlockscreen`, `powerprofilesctl`.
+- Depends on: `dmenu` binary (launched as a child), `xclip`, `notify-send`, `loginctl`, `betterlockscreen`, `powerprofilesctl`.
 - Used by: dwm keybinds, `dwm-start` daemon list, external hotkeys (battery-notify is designed to be called from a cron/timer or future hotkey).
 - Purpose: Historical reference implementations of the above.
 - Location: `scripts/dmenu-clip`, `scripts/dmenu-clipd`, `scripts/dmenu-cpupower`, `scripts/dmenu-session`.
@@ -307,7 +308,6 @@ A hardened, C-native utility suite for a dwm-based desktop environment targeting
 - `dmenu/dmenu.c:760` — parses many single-letter flags, reads stdin, grabs keyboard, draws, writes selection.
 - `slstatus/slstatus.c:48` — uses the `ARGBEGIN`/`ARGEND` macro from `slstatus/arg.h:8-26` to parse `-v/-s/-1`, installs signal handlers, opens display unless `-s`, enters the status loop.
 - `utils/battery-notify/battery-notify.c:33` — one-shot: read, check, notify, exit.
-- `utils/screenshot-notify/screenshot-notify.c:58` — one-shot: capture and notify.
 - `utils/dmenu-session/dmenu-session.c:99` — show menu, dispatch to `action_lock/logout/reboot/shutdown`.
 - `utils/dmenu-cpupower/dmenu-cpupower.c:54` — read current profile, show menu, validate, `powerprofilesctl set`.
 - `utils/dmenu-clip/dmenu-clip.c:104` — scan cache, show menu, restore via xclip.

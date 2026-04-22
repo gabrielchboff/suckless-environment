@@ -107,7 +107,7 @@ The window manager uses **Super (Windows key)** as the primary modifier (MODKEY)
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `Print` | maim -s | Screenshot (selection) |
+| `Print` | flameshot gui | Screenshot (region select, annotate, copy) |
 | `Brightness Up` | brightness-notify up | Increase brightness |
 | `Brightness Down` | brightness-notify down | Decrease brightness |
 | `Volume Up` | pactl set-sink-volume +5% | Increase volume |
@@ -133,9 +133,6 @@ CPU power profile selector. Uses power-profiles-daemon to switch between perform
 
 ### dmenu-session
 Session menu for lock screen, logout, reboot, and shutdown. Uses loginctl for session management.
-
-### screenshot-notify
-Captures screenshot via maim and sends a notification. Supports selection capture.
 
 ## Troubleshooting
 

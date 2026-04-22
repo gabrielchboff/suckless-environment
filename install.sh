@@ -8,10 +8,36 @@ set -e
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ---------------------------------------------------------------- config
-BUILD_DEPS="base-devel git libxft libxinerama freetype2 fontconfig xorg-server xorg-xinit"
-RUNTIME_DEPS="ttf-iosevka-nerd feh fcitx5 lxpolkit libpulse brightnessctl maim xclip xsel xdotool thunar pamixer dunst"
-AUR_DEPS="brave-bin betterlockscreen"
-# PPD_PKG, INIT, AUR_HELPER set at runtime by detect_distro / ensure_aur_helper
+# BUILD_DEPS additions:
+# - harfbuzz       : st ligatures patch (hb.c)
+# - imlib2, zlib   : st kitty-graphics patch (graphics.c)
+# - libxrender     : st kitty-graphics links -lXrender
+BUILD_DEPS="base-devel git libxft libxinerama libxrender freetype2 fontconfig \
+harfbuzz imlib2 zlib xorg-server xorg-xinit"
+
+# Runtime deps grouped by role. Installer-skipped on purpose: kernel,
+# firmware, bootloader (grub/refind/os-prober/efibootmgr), init (openrc,
+# elogind-openrc), artix-archlinux-support, AUR helper (handled separately).
+RUNTIME_DEPS="\
+ttf-iosevka-nerd noto-fonts-cjk noto-fonts-emoji \
+feh picom dunst lxsession polkit-gnome \
+fcitx5 fcitx5-configtool fcitx5-gtk fcitx5-mozc \
+libpulse pipewire pipewire-alsa pipewire-pulse wireplumber pamixer \
+brightnessctl flameshot xclip xsel xdotool \
+thunar thunar-volman gvfs gvfs-smb ntfs-3g \
+bluez bluez-utils blueberry \
+networkmanager connman connman-gtk dhcpcd \
+arc-gtk-theme papirus-icon-theme lxappearance \
+vim neovim helix tmux btop neofetch \
+nodejs npm jdk25-openjdk \
+vlc discord spotify-launcher steam \
+ly zip unzip resvg"
+
+AUR_DEPS="brave-bin betterlockscreen i3lock-color gnome-bluetooth wiremix-git"
+
+# PPD_PKG, SERVICE_PKGS, INIT, AUR_HELPER set at runtime by
+# detect_distro / ensure_aur_helper. SERVICE_PKGS carries -openrc
+# supervisor variants on Artix (Arch ships systemd units inside base pkgs).
 UDEV_RULE_SRC="$REPO_DIR/udev/90-backlight.rules"
 UDEV_RULE_DST=/etc/udev/rules.d/90-backlight.rules
 SUDO_KEEPALIVE_PID=""
@@ -42,9 +68,17 @@ detect_distro() {
     # shellcheck disable=SC1091
     . /etc/os-release
     case "$ID" in
-        arch)  PPD_PKG="power-profiles-daemon" ;;
-        artix) PPD_PKG="power-profiles-daemon-openrc" ;;
-        *)     die "unsupported distro: $ID (this installer supports arch and artix only)" ;;
+        arch)
+            PPD_PKG="power-profiles-daemon"
+            SERVICE_PKGS=""
+            ;;
+        artix)
+            PPD_PKG="power-profiles-daemon-openrc"
+            SERVICE_PKGS="bluez-openrc networkmanager-openrc connman-openrc ly-openrc"
+            ;;
+        *)
+            die "unsupported distro: $ID (this installer supports arch and artix only)"
+            ;;
     esac
     if [ -d /run/openrc ]; then
         INIT=openrc
@@ -142,9 +176,9 @@ bootstrap_aur_helper() {
 # ---------------------------------------------------------------- install steps — added in Plans 02/03
 
 install_pkgs() {
-    info "installing pacman packages (build + runtime + PPD variant for $ID)"
+    info "installing pacman packages (build + runtime + PPD + service variants for $ID)"
     # shellcheck disable=SC2086   # intentional word-splitting on space-separated lists
-    sudo pacman -S --needed --noconfirm $BUILD_DEPS $RUNTIME_DEPS "$PPD_PKG" \
+    sudo pacman -S --needed --noconfirm $BUILD_DEPS $RUNTIME_DEPS $SERVICE_PKGS "$PPD_PKG" \
         || die "pacman install failed"
 
     info "installing AUR packages via $AUR_HELPER"
@@ -312,6 +346,7 @@ verify_install() {
     check_cmd "slstatus"          slstatus          "slstatus not on PATH"
     check_cmd "dunst"             dunst             "dunst not on PATH"
     check_cmd "brightnessctl"     brightnessctl     "brightnessctl not on PATH — brightness keys will fail"
+    check_cmd "flameshot"         flameshot         "flameshot not on PATH — Print key screenshot will fail"
     check_cmd "betterlockscreen"  betterlockscreen  "betterlockscreen missing — dmenu-session lock will fail"
     check_cmd "powerprofilesctl"  powerprofilesctl  "powerprofilesctl missing — dmenu-cpupower will be non-functional"
     check_cmd "loginctl"          loginctl          "loginctl missing — session actions will fail"

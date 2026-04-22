@@ -12,7 +12,7 @@ X11_LIBS = -lX11 -lXfixes
 
 # Utility binaries - populated as phases add utilities
 BINS = battery-notify/battery-notify brightness-notify/brightness-notify \
-       screenshot-notify/screenshot-notify dmenu-session/dmenu-session \
+       dmenu-session/dmenu-session \
        dmenu-cpupower/dmenu-cpupower dmenu-clip/dmenu-clip \
        dmenu-clipd/dmenu-clipd
 
@@ -37,13 +37,6 @@ brightness-notify/brightness-notify: brightness-notify/brightness-notify.o $(COM
 	$(CC) -o $@ $(LDFLAGS) $^
 
 brightness-notify/brightness-notify.o: brightness-notify/brightness-notify.c brightness-notify/config.h common/util.h
-	$(CC) -o $@ -c $(CFLAGS) $<
-
-# screenshot-notify
-screenshot-notify/screenshot-notify: screenshot-notify/screenshot-notify.o $(COMMON_OBJ)
-	$(CC) -o $@ $(LDFLAGS) $^
-
-screenshot-notify/screenshot-notify.o: screenshot-notify/screenshot-notify.c common/util.h
 	$(CC) -o $@ -c $(CFLAGS) $<
 
 # dmenu-session
@@ -79,7 +72,6 @@ clean:
 	rm -f $(BINS)
 	rm -f battery-notify/*.o
 	rm -f brightness-notify/*.o
-	rm -f screenshot-notify/*.o
 	rm -f dmenu-session/*.o
 	rm -f dmenu-cpupower/*.o
 	rm -f dmenu-clip/*.o

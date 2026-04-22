@@ -98,7 +98,7 @@ static const Key keys[] = {
     { 0, XF86XK_AudioRaiseVolume,   spawn,     {.v = volumeup } },
     { 0, XF86XK_AudioLowerVolume,   spawn,     {.v = volumedown } },
     { 0, XF86XK_AudioMute,          spawn,     {.v = volumemute } },
-    { 0, XK_Print,                  spawn,     SHCMD("maim -s | xclip -selection clipboard -t image/png") },
+    { 0, XK_Print,                  spawn,     SHCMD("flameshot gui") },
     { MODKEY,                       XK_e,      spawn,          SHCMD("thunar") },
     { MODKEY| ShiftMask,            XK_b,      spawn,          SHCMD("brave") },
 	{ MODKEY,                       XK_z,      zoom,           {0} },
