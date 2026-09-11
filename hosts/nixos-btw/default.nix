@@ -155,10 +155,17 @@
   # inside home.nix would be ignored in silence. This is the only place the
   # option has any effect.
   #
-  # Named one by one rather than a blanket allowUnfree: spotify and obsidian
-  # are the only two unfree packages on this system -- Brave, which looks
-  # like it would be, is MPL-2.0 -- and the predicate keeps it that way. A
-  # typo or a future dependency does not get in for free.
+  # Named one by one rather than a blanket allowUnfree: these five are the
+  # only unfree packages on this system -- Brave, which looks like it would
+  # be, is MPL-2.0 -- and the predicate keeps it that way. A typo or a
+  # future dependency does not get in for free.
+  #
+  # Steam needs three names rather than one because the client is a wrapper
+  # around itself: `steam-unwrapped' is the real client, `steam' the FHS
+  # wrapper the module below builds and runs, and `steamcmd' the headless
+  # downloader in home.nix. The predicate is asked about each derivation
+  # separately, so each carries its own unfree meta. `steam-run', which
+  # comes along with the module, is marked free and needs no entry.
   #
   # The applications themselves are in ./home.nix: they belong to this user,
   # not to this machine.
@@ -168,6 +175,9 @@
     builtins.elem (lib.getName pkg) [
       "spotify"
       "obsidian"
+      "steam"
+      "steam-unwrapped"
+      "steamcmd"
     ];
 
   # A convenience alias. It goes here and not into home-manager on purpose:
@@ -182,6 +192,37 @@
 
   # Brave is this desktop's browser; Firefox stays as a second engine.
   programs.firefox.enable = true;
+
+  # ------------------------------------------------------------------
+  # Steam.
+  #
+  # A SYSTEM option, and that is the whole point: `programs.steam' does not
+  # exist in home-manager, so declaring it beside the user's applications
+  # fails the evaluation outright -- "The option
+  # `home-manager.users.void.programs.steam' does not exist".
+  #
+  # The placement is not a matter of taste either. The module does three
+  # things no user profile can reach:
+  #
+  #   hardware.graphics.enable32Bit = true  the 32-bit libraries the client
+  #                                         and the games link against
+  #   networking.firewall.allowed{TCP,UDP}Ports
+  #                                         UDP 10400/10401 and 27015/27036,
+  #                                         TCP 27015/27036/27037 -- what the
+  #                                         two openFirewall below turn on
+  #   udev rules + steam-run + the FHS wrapper
+  #                                         gamepads, and the sandbox Steam
+  #                                         actually runs inside
+  #
+  # It is also why the client is not a package in ./home.nix: a bare
+  # pkgs.steam in the user profile would be a second client with none of
+  # that around it.
+  # ------------------------------------------------------------------
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
+  };
 
   # ------------------------------------------------------------------
   # Installed as 25.05. Keeping the older value means the 26.05 upgrade does

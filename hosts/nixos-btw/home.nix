@@ -42,6 +42,22 @@
     rust-analyzer
     zig
     zls
+
+    # The same argument, for the two runtimes. `npm' is not a package of
+    # its own: it ships inside nodejs, and `pkgs.npm' does not exist at all
+    # -- asking for it is an evaluation error, not a missing binary.
+    nodejs
+    bun
+
+    libreoffice
+
+    # The Steam CLIENT is not here. It is `programs.steam' in ./default.nix,
+    # the SYSTEM module -- see the comment there for why it cannot be a user
+    # package. These two are different programs and stay packages: steamcmd
+    # is the headless content downloader, steam-tui a terminal front end
+    # that drives it.
+    steamcmd
+    steam-tui
   ];
 
   # OBS through its module: it is what builds the wrapper that can find
